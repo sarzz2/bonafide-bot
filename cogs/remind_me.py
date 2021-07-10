@@ -18,9 +18,7 @@ class RemindMe(commands.Cog):
         """Check if the category/cog is enabled"""
         if ctx.author.guild_permissions.administrator:
             return True
-        query = (
-            """ SELECT * FROM cog_check WHERE guild_id = $1 AND cog_name = 'remind_me'"""
-        )
+        query = """ SELECT * FROM cog_check WHERE guild_id = $1 AND cog_name = 'remind_me'"""
         data = await self.bot.db.fetch_row(query, ctx.guild.id)
         if data.get("enabled") is True:
             return True
