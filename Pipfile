@@ -15,9 +15,9 @@ jishaku = "*"
 google = "*"
 matplotlib = "*"
 numpy = "*"
-scipy = "*"
 google-api-python-client = "*"
 colorlog = "*"
+google-cloud-pubsub = "*"
 
 [dev-packages]
 pre-commit = "*"

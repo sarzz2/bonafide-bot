@@ -40,3 +40,6 @@ guild_id) ON DELETE CASCADE) """
 
 user_inventory = """CREATE TABLE IF NOT EXISTS stats (guild_id bigint NOT NULL, user_id bigint NOT NULL,
 items text, value int, CONSTRAINT fk_guild FOREIGN KEY(guild_id) REFERENCES guild(guild_id) ON DELETE CASCADE) """
+
+role_check = """CREATE TABLE IF NOT EXISTS role_check (guild_id bigint, cog_name text, role_id bigint,
+enabled boolean, CONSTRAINT fk_guild FOREIGN KEY(guild_id) REFERENCES guild(guild_id) ON DELETE CASCADE); """

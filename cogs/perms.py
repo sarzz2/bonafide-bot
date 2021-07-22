@@ -1,7 +1,13 @@
 import datetime
+import os
 
 import discord
 from discord.ext import commands
+
+cogs = []
+for filename in os.listdir("cogs"):
+    if filename.endswith(".py"):
+        cogs.append(f"{filename[:-3]}")
 
 
 def setup(bot: commands.Bot):
@@ -75,6 +81,93 @@ class Perms(commands.Cog):
             embed.add_field(
                 name=f"{data[i].get('cog_name')}",
                 value=f"{data[i].get('enabled')}",
+                inline=True,
+            )
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def allow_role(self, ctx, role: discord.Role, category: str):
+        """Allow a role to use a certain category/cogs
+        example:
+        - allow_role @role fun
+        - allow_role @role poll"""
+        not_allowed_cogs = [
+            "perms",
+            "basic_setup",
+            "help",
+            "message",
+            "moderation",
+            "roles",
+            "filter",
+        ]
+        if category.lower() not in cogs or category.lower() in not_allowed_cogs:
+            return await ctx.send(
+                "**Category does not exist or can't be granted role permissions.**"
+            )
+
+        query = """SELECT * FROM role_check WHERE guild_id = $1 AND cog_name = $2"""
+        data = await self.bot.db.fetch(query, ctx.guild.id, category.lower())
+
+        for i in range(len(data)):
+            if data[i].get("enabled") and data[i].get("role_id") == role.id:
+                return await ctx.send(
+                    f"**{role.name} is already enabled for {category.lower()}.**"
+                )
+
+        query = """INSERT INTO role_check (guild_id, cog_name, role_id, enabled) VALUES ($1, $2, $3, True)"""
+        await self.bot.db.execute(query, ctx.guild.id, category.lower(), role.id)
+        return await ctx.send(f"**Category {category} enabled for {role.name}.**")
+
+    @commands.command()
+    async def disallow_role(self, ctx, role: discord.Role, category: str):
+        """Disallow a role to use a certain category/cogs
+        example:
+        - disallow_role @role fun
+        - disallow_role @role poll"""
+        not_allowed_cogs = [
+            "perms",
+            "basic_setup",
+            "help",
+            "message",
+            "moderation",
+            "roles",
+            "filter",
+        ]
+        if category.lower() not in cogs or category.lower() in not_allowed_cogs:
+            return await ctx.send(
+                "**Category does not exist or can't be granted role permissions.**"
+            )
+
+        query = """SELECT * FROM role_check WHERE guild_id = $1 AND cog_name = $2"""
+        data = await self.bot.db.fetch_row(query, ctx.guild.id, category.lower())
+
+        if data is None:
+            return await ctx.send(
+                f"**Category {category} is already disabled for {role.name}.**"
+            )
+        elif data.get("enabled"):
+            query = """ UPDATE role_check SET enabled = False WHERE guild_id = $1 AND cog_name = $2  AND role_id = $3"""
+            await self.bot.db.execute(query, ctx.guild.id, category.lower(), role.id)
+            return await ctx.send(f"**Category {category} disabled for {role.name}.**")
+        else:
+            return await ctx.send(
+                f"**Category {category} is already disabled for {role.name}.**"
+            )
+
+    @commands.command()
+    async def list_role(self, ctx):
+        """Check which all roles have perms to use which category/cog"""
+        query = """SELECT * FROM role_check WHERE guild_id = $1"""
+        data = await self.bot.db.fetch(query, ctx.guild.id)
+        embed = discord.Embed(
+            title="Roles Permission",
+            timestamp=datetime.datetime.utcnow(),
+            colour=discord.Colour.blurple(),
+        )
+        for i in range(len(data)):
+            embed.add_field(
+                name=f"{data[i].get('cog_name')}",
+                value=f"<@&{data[i].get('role_id')}>, {data[i].get('enabled')}",
                 inline=True,
             )
         await ctx.send(embed=embed)

@@ -460,13 +460,17 @@ class Role(commands.Cog):
         )
         embed.add_field(name="ID", value=role.id)
         embed.add_field(name="Name", value=role.name)
+        embed.add_field(name="Members", value=str(len(role.members)))
         embed.add_field(
             name="Created At", value=role.created_at.strftime("%d/%m/%Y, %H:%M")
         )
         embed.add_field(name="Hoisted", value=role.hoist)
         embed.add_field(name="Mentionable", value=role.mentionable)
-        embed.add_field(name="Mention", value=role.mention)
-        # embed.add_field(name="Permissions", value=role.permissions)
+        if role.name == "@everyone":
+            embed.add_field(name="Mention", value=role.name)
+        else:
+            embed.add_field(name="Mention", value=role.mention)
+        embed.add_field(name="Position", value=role.position)
         await ctx.send(embed=embed)
 
     @commands.command()

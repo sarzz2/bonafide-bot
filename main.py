@@ -74,6 +74,7 @@ class BonaFide(commands.AutoShardedBot):
         await self.db.execute(init_db.stats_server)
         await self.db.execute(init_db.tags)
         await self.db.execute(init_db.user_inventory)
+        await self.db.execute(init_db.role_check)
 
     async def on_ready(self):
         logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
@@ -114,11 +115,10 @@ class BonaFide(commands.AutoShardedBot):
             x = Guild(self, guild.id, guild.name)
             await x.post()
 
-            # basic_setup, help, moderation, notifications, perms, lock, roles
+            # basic_setup, help, moderation, perms, lock, roles, filter
             query = """INSERT INTO cog_check (guild_id, cog_name, enabled) VALUES($1, $2 ,$3)"""
             await self.db.execute(query, guild.id, "basic_info", True)
             await self.db.execute(query, guild.id, "currency", False)
-            await self.db.execute(query, guild.id, "filter", False)
             await self.db.execute(query, guild.id, "fun", False)
             await self.db.execute(query, guild.id, "games", False)
             await self.db.execute(query, guild.id, "giveaway", False)

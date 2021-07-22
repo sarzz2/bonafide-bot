@@ -1,7 +1,7 @@
-import datetime
-
-import discord
 from discord.ext import commands, tasks
+import datetime
+import discord
+
 from utils.time_converter import convert_time_to_seconds
 
 
@@ -16,13 +16,29 @@ class RemindMe(commands.Cog):
 
     async def cog_check(self, ctx):
         """Check if the category/cog is enabled"""
+        # check admin
         if ctx.author.guild_permissions.administrator:
             return True
-        query = """ SELECT * FROM cog_check WHERE guild_id = $1 AND cog_name = 'remind_me'"""
+
+        query = """ SELECT * FROM cog_check WHERE guild_id = $1 AND cog_name = 'basic_info'"""
         data = await self.bot.db.fetch_row(query, ctx.guild.id)
-        if data.get("enabled") is True:
+
+        # check if cog is enabled
+        if data.get("enabled"):
             return True
+        # if cog is not enabled then check whether author's role is allowed to run the cog's commands
         else:
+            query = """SELECT * FROM role_check WHERE guild_id = $1 AND cog_name = 'basic_info' AND role_id = $2"""
+
+            for i in range(len(ctx.author.roles)):
+                data = await self.bot.db.fetch_row(
+                    query, ctx.guild.id, ctx.author.roles[i].id
+                )
+                if data is None:
+                    continue
+                elif data.get("enabled"):
+                    return True
+
             return False
 
     @commands.command()
