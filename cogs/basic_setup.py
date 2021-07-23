@@ -68,16 +68,26 @@ class BasicSetup(commands.Cog):
         - update server-logs #channel-name
         - update mod-logs #channel-name"""
         char = ["<", ">", "#"]
+        # stripping chars from name if there
         for i in char:
             channel = channel.replace(i, "")
-        if to_update == "server-logs":
-            query = """ UPDATE guild  SET server_log = $2 WHERE guild_id = $1"""
-            await self.bot.db.execute(query, ctx.guild.id, int(channel))
-        elif to_update == "mod-logs":
-            query = """ UPDATE guild  SET mod_log = $2 WHERE guild_id = $1"""
-            await self.bot.db.execute(query, ctx.guild.id, int(channel))
+        # checking if given channel/id exists in the guild
+        for i in range(len(ctx.guild.channels)):
+            if str(channel) in str(ctx.guild.channels[i].id):
+                if to_update == "server-logs":
+                    query = """ UPDATE guild  SET server_log = $2 WHERE guild_id = $1"""
+                    await self.bot.db.execute(query, ctx.guild.id, int(channel))
+                elif to_update == "mod-logs":
+                    query = """ UPDATE guild  SET mod_log = $2 WHERE guild_id = $1"""
+                    await self.bot.db.execute(query, ctx.guild.id, int(channel))
+                else:
+                    return await ctx.send("**Invalid log category.**")
 
-        return await ctx.channel.send(f"{to_update} has been updated to <#{channel}>")
+                return await ctx.channel.send(
+                    f"{to_update} has been updated to <#{channel}>"
+                )
+
+        return await ctx.send("**Invalid channel ID/name.**")
 
     @commands.command()
     async def prefix(self, ctx, p):
@@ -99,73 +109,42 @@ class BasicSetup(commands.Cog):
     @commands.command()
     async def ignorechannel(self, ctx, channel: discord.TextChannel):
         """Add channel to the ignored list for xp gain"""
-        query = """SELECT ignored_channel FROM guild WHERE guild_id = $1"""
-        ignored_channel = await self.bot.db.fetch_row(query, ctx.guild.id)
-        if ignored_channel.get("ignored_channel") is None:
-            pass
-        elif channel.id in ignored_channel.get("ignored_channel"):
-            return await ctx.send(
-                f"**<#{channel.id}> is already in ignored channel list.**"
-            )
+        for i in range(len(ctx.guild.channels)):
+            if str(channel) in str(ctx.guild.channels[i].id):
+                query = """SELECT ignored_channel FROM guild WHERE guild_id = $1"""
+                ignored_channel = await self.bot.db.fetch_row(query, ctx.guild.id)
+                if ignored_channel.get("ignored_channel") is None:
+                    pass
+                elif channel.id in ignored_channel.get("ignored_channel"):
+                    return await ctx.send(
+                        f"**<#{channel.id}> is already in ignored channel list.**"
+                    )
 
-        query = """ UPDATE guild SET ignored_channel = ignored_channel || $2 WHERE guild_id = $1"""
-        await self.bot.db.execute(query, ctx.guild.id, [channel.id])
-        return await ctx.send(f"**<#{channel.id}> added to ignored list for xp.**")
+                query = """ UPDATE guild SET ignored_channel = ignored_channel || $2 WHERE guild_id = $1"""
+                await self.bot.db.execute(query, ctx.guild.id, [channel.id])
+                return await ctx.send(
+                    f"**<#{channel.id}> added to ignored list for xp.**"
+                )
+        return await ctx.send("**Invalid channel ID/name.**")
 
     @commands.command()
     async def unignorechannel(self, ctx, channel: discord.TextChannel):
         """Remove channel from the ignored list for the xp gain"""
-        query = """ SELECT ignored_channel FROM guild WHERE guild_id = $1"""
-        ignored_channel = await self.bot.db.fetch_row(query, ctx.guild.id)
-        if ignored_channel.get("ignored_channel") is None:
-            pass
-        elif channel.id not in ignored_channel.get("ignored_channel"):
-            return await ctx.send(
-                f"**<#{channel.id}> is not in ignored channel list.**"
-            )
+        for i in range(len(ctx.guild.channels)):
+            if str(channel) in str(ctx.guild.channels[i].id):
+                query = """ SELECT ignored_channel FROM guild WHERE guild_id = $1"""
+                ignored_channel = await self.bot.db.fetch_row(query, ctx.guild.id)
+                if ignored_channel.get("ignored_channel") is None:
+                    pass
+                elif channel.id not in ignored_channel.get("ignored_channel"):
+                    return await ctx.send(
+                        f"**<#{channel.id}> is not in ignored channel list.**"
+                    )
 
-        query = """UPDATE guild SET ignored_channel = array_remove(ignored_channel, $2) WHERE guild_id = $1"""
-        await self.bot.db.execute(query, ctx.guild.id, channel.id)
-        return await ctx.send(
-            f"**<#{channel.id}> has been removed from ignored list for xp.**"
-        )
+                query = """UPDATE guild SET ignored_channel = array_remove(ignored_channel, $2) WHERE guild_id = $1"""
+                await self.bot.db.execute(query, ctx.guild.id, channel.id)
+                return await ctx.send(
+                    f"**<#{channel.id}> has been removed from ignored list for xp.**"
+                )
 
-    # TODO set this and perms
-    # @commands.command()
-    # async def toggle(self, ctx, type: str, cmd):
-    #
-    #     if cmd in self.bot.commands:
-    #         if type.lower() == "disable":
-    #             query = (
-    #                 """ SELECT * FROM command WHERE guild_id = $1 AND command = $2"""
-    #             )
-    #             data = await self.bot.db.fetch_row(query, ctx.guild.id, cmd)
-    #             # If command is in db then it is disabled
-    #             if data:
-    #                 query = """ INSERT INTO command (guild_id, cmd, enabled) VALUES ($1, $2, $3)"""
-    #                 await self.bot.db.execute(query, ctx.guild.id, cmd, True)
-    #                 return await ctx.send(
-    #                     f"Command {cmd} has been disabled for everyone except admin privileges."
-    #                 )
-    #             else:
-    #                 return await ctx.send(f"Command {cmd} is already disabled")
-    #
-    #         else:
-    #             query = (
-    #                 """ SELECT * FROM command WHERE guild_id = $1 AND command = $2"""
-    #             )
-    #             data = await self.bot.db.fetch_row(query, ctx.guild.id, cmd)
-    #             # if command is not there in db then it's enabled
-    #             if not data:
-    #                 query = """ INSERT INTO command (guild_id, cmd, enabled) VALUES ($1, $2, $3)"""
-    #                 await self.bot.db.execute(query, ctx.guild.id, cmd, True)
-    #                 return await ctx.send(
-    #                     f"Command {cmd} has been enabled for everyone."
-    #                 )
-    #             else:
-    #                 return await ctx.send(f"Command {cmd} is already enabled")
-    #
-    #     else:
-    #         await ctx.send(
-    #             f"Command {cmd} not found. Type .help for list of all commands."
-    #         )
+        return await ctx.send("**Invalid channel ID/name.**")
