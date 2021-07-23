@@ -28,7 +28,7 @@ shop = """CREATE TABLE IF NOT EXISTS shop (guild_id bigint NOT NULL, items text 
 description text, CONSTRAINT fk_guild FOREIGN KEY(guild_id) REFERENCES guild(guild_id) ON DELETE CASCADE) """
 
 stats = """CREATE TABLE IF NOT EXISTS stats (guild_id bigint NOT NULL, user_id bigint NOT NULL, message_count
-int, created_at timestamp, CONSTRAINT fk_guild FOREIGN KEY(guild_id) REFERENCES guild(guild_id) ON DELETE
+int, created_at date, CONSTRAINT fk_guild FOREIGN KEY(guild_id) REFERENCES guild(guild_id) ON DELETE
 CASCADE) """
 
 stats_server = """CREATE TABLE IF NOT EXISTS stats_server(guild_id bigint, member_count int, created_at date,
