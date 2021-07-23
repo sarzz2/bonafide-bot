@@ -6,6 +6,10 @@
 
 </div>
 
+## Information
+To invite the bot to your server: https://discord.com/api/oauth2/authorize?client_id=850004714623729674&permissions=8&scope=bot
+Bonafide bot official discord server: https://discord.gg/E7bnXS2hpn
+
 ## 🏁 Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
@@ -39,6 +43,7 @@ pip install pipenv
 Install the required packages and the packages for development with Pipenv:
 
 ```sh
+pipenv install
 pipenv install --dev
 ```
 
@@ -53,9 +58,8 @@ rapid-api-key=rapi_api_key_for_fun_commands
 google-api-key=google_api_key_for_youtube/google_etc.
 ```
 
-```
-
 ### Running
-
+```
 Run the main.py file to get the bot running.
-To enable music commands in bot run java -jar Lavalink.jar in terminal.
+To enable music commands in bot run "java -jar Lavalink.jar" in terminal.
+```
