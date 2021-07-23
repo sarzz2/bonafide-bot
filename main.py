@@ -115,13 +115,12 @@ class BonaFide(commands.AutoShardedBot):
             x = Guild(self, guild.id, guild.name)
             await x.post()
 
-            # basic_setup, help, moderation, perms, lock, roles, filter
+            # basic_setup, help, moderation, perms, lock, roles, filter, giveaway
             query = """INSERT INTO cog_check (guild_id, cog_name, enabled) VALUES($1, $2 ,$3)"""
             await self.db.execute(query, guild.id, "basic_info", True)
             await self.db.execute(query, guild.id, "currency", False)
             await self.db.execute(query, guild.id, "fun", False)
             await self.db.execute(query, guild.id, "games", False)
-            await self.db.execute(query, guild.id, "giveaway", False)
             await self.db.execute(query, guild.id, "levelling", False)
             await self.db.execute(query, guild.id, "message", False)
             await self.db.execute(query, guild.id, "poll", False)
@@ -151,23 +150,6 @@ class BonaFide(commands.AutoShardedBot):
             await self.invoke(ctx)
         except:
             pass
-
-    # async def process_commands(self, message):
-    #     if message.author.bot:
-    #         return
-    #     ctx = await self.get_context(message=message)
-    #     query = """ SELECT * FROM commands WHERE guild_id = $1 AND cmd = $2 """
-    #     data = await self.db.fetch_row(query, message.guild.id, ctx.command.name)
-    #
-    #     try:
-    #         if not ctx.author.guild_permissions.administrator:
-    #             if data.get("enabled") is True:
-    #                 return await ctx.send("The command is not enabled")
-    #         else:
-    #             await self.invoke(ctx)
-    #
-    #     except:
-    #         await self.invoke(ctx)
 
     async def on_command_error(self, ctx, exception):
         await self.wait_until_ready()
@@ -204,7 +186,7 @@ class BonaFide(commands.AutoShardedBot):
         ):
             return await ctx.send(str(error))
 
-        elif isinstance(error, (MissingRequiredArgument, BadArgument)):
+        elif isinstance(error, MissingRequiredArgument):
             return await (ctx.send_help(ctx.command))
 
         elif isinstance(error, BotMissingPermissions):

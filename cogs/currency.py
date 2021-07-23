@@ -25,7 +25,9 @@ class Currency(commands.Cog):
         if ctx.author.guild_permissions.administrator:
             return True
 
-        query = """ SELECT * FROM cog_check WHERE guild_id = $1 AND cog_name = 'basic_info'"""
+        query = (
+            """ SELECT * FROM cog_check WHERE guild_id = $1 AND cog_name = 'currency'"""
+        )
         data = await self.bot.db.fetch_row(query, ctx.guild.id)
 
         # check if cog is enabled
@@ -33,7 +35,7 @@ class Currency(commands.Cog):
             return True
         # if cog is not enabled then check whether author's role is allowed to run the cog's commands
         else:
-            query = """SELECT * FROM role_check WHERE guild_id = $1 AND cog_name = 'basic_info' AND role_id = $2"""
+            query = """SELECT * FROM role_check WHERE guild_id = $1 AND cog_name = 'currency' AND role_id = $2"""
 
             for i in range(len(ctx.author.roles)):
                 data = await self.bot.db.fetch_row(
