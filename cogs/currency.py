@@ -88,25 +88,44 @@ class Currency(commands.Cog):
         return await ctx.send(embed=embed)
 
     @commands.command(aliases=["dep"])
-    async def deposit(self, ctx, amount: int):
+    async def deposit(self, ctx, amount):
         """Deposit the specified coins in wallet to the bank
         example:
-        - deposit 1000"""
+        - deposit 1000
+        - deposit all"""
         data = await BonfideCoin(self.bot).get(ctx.guild.id, ctx.author.id)
         if data is None:
             await self.add_to_db(ctx.guild.id, ctx.author.id)
 
         data = await BonfideCoin(self.bot).get(ctx.guild.id, ctx.author.id)
 
-        # check if money being deposited is equal to or less than wallet
-        if 0 < data.get("wallet") >= amount:
-            query = """UPDATE bonafidecoin SET bank = $3 + bank, wallet = wallet - $3 WHERE guild_id = $1 AND user_id
-            = $2"""
-            await self.bot.db.execute(query, ctx.guild.id, ctx.author.id, amount)
-            return await ctx.send(
-                f"Successfully deposited <:coin:853891390537465858> **{amount}**."
+        # return error if balance is 0
+        if data.get("wallet") == 0:
+            return await ctx.send("You don't have sufficient balance to deposit.")
+
+        query = """UPDATE bonafidecoin SET bank = $3 + bank, wallet = wallet - $3 WHERE guild_id = $1 AND user_id
+                 = $2"""
+        if amount.lower() == "all":
+            await self.bot.db.execute(
+                query, ctx.guild.id, ctx.author.id, data.get("wallet")
             )
-        return await ctx.send("You don't have sufficient balance to deposit.")
+            return await ctx.send(
+                f"Successfully deposited <:coin:853891390537465858> **{data.get('wallet')}**."
+            )
+
+        else:
+            try:
+                # check if money being deposited is equal to or less than wallet
+                if 0 < data.get("wallet") >= int(amount):
+                    await self.bot.db.execute(
+                        query, ctx.guild.id, ctx.author.id, int(amount)
+                    )
+                    return await ctx.send(
+                        f"Successfully deposited <:coin:853891390537465858> **{amount}**."
+                    )
+                return await ctx.send("You don't have sufficient balance to deposit.")
+            except ValueError:
+                return await ctx.send("Enter a valid amount.")
 
     @commands.command()
     async def withdraw(self, ctx, amount: int):
